@@ -5,8 +5,8 @@ if(excess){
   orderly_loc <- file.path(orderly_loc, "data", "reported_deaths")
   empty_files <- c("Baseline-Direct & No Healthcare Surging", "Baseline-Direct",
                    "Baseline-No Healthcare Surging", "COVAX", "No Vaccines-No Healthcare Surging",
-                   "WHO","1_days_earlier", "2_days_earlier",  "4_days_earlier",  "8_days_earlier",
-                  "16_days_earlier", "32_days_earlier", "64_days_earlier", "excess_deaths")
+                   "WHO","1-days-earlier", "2-days-earlier",  "4-days-earlier",  "8-days-earlier",
+                  "16-days-earlier", "32-days-earlier", "64-days-earlier", "excess_deaths")
 }
 #now copy over fitting plots
 file.copy(
