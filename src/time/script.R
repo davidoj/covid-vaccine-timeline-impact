@@ -1,27 +1,32 @@
-
-#which type of fit
-excess_mortality <- TRUE
-if(excess_mortality){
-  fit_loc <- file.path("data", "excess_mortality", "model_fits")
-  output <- file.path("data", "excess_mortality", "counterfactual_data")
-  cf_output <- file.path("data", "excess_mortality", "counterfactuals.Rds")
-  plot_output <- file.path("data", "excess_mortality", "fitting_plots.pdf")
-  temp_plots <- file.path("data", "excess_mortality", "temp")
-
-} else {
-  fit_loc <- file.path("data", "reported_deaths", "model_fits")
-  output <- file.path("data", "reported_deaths", "counterfactual_data")
-  cf_output <- file.path("data", "reported_deaths", "counterfactuals.Rds")
-  plot_output <- file.path("data", "reported_deaths", "fitting_plots.pdf")
-  temp_plots <- file.path("data", "reported_deaths", "temp")
+if(!is.na(seed) & seed != "NA"){
+  set.seed(seed)
 }
 
-# iso3cs <- gsub(".Rds", "", list.files(fit_loc))
-iso3cs <- c('USA')
-#load packages
-library(squire.page)
-library(tidyverse)
+#which type of fit
+countries_of_interest <- c('USA','USA2')
+excess_mortality <- TRUE
+if(excess_mortality){
+  fit_loc <- file.path("..","..","..","data", "excess_mortality", "model_fits")
+  # output <- file.path("data", "excess_mortality", "counterfactual_data")
+  # cf_output <- file.path("data", "excess_mortality", "counterfactuals.Rds")
+  # plot_output <- file.path("data", "excess_mortality", "fitting_plots.pdf")
+  # temp_plots <- file.path("data", "excess_mortality", "temp")
 
+} else {
+  fit_loc <- file.path("..","..","..","data", "reported_deaths", "model_fits")
+  # output <- file.path("data", "reported_deaths", "counterfactual_data")
+  # cf_output <- file.path("data", "reported_deaths", "counterfactuals.Rds")
+  # plot_output <- file.path("data", "reported_deaths", "fitting_plots.pdf")
+  # temp_plots <- file.path("data", "reported_deaths", "temp")
+}
+
+output <- "cf_data"
+cf_output <- "counterfactuals.Rds"
+plot_output <- "fitting_plots.pdf"
+temp_plots <- "temp"
+iso3cs <- gsub(".Rds", "", list.files(fit_loc))
+iso3cs <- iso3cs[iso3cs %in% countries_of_interest]
+print(iso3cs)
 #load counterfactual simulation functions
 #' Generate Deaths Averted
 #'
@@ -117,68 +122,68 @@ deaths_averted <- function(out, draws, counterfactual, reduce_age = TRUE,
   dataframeLength <- nrow(baseline_deaths)
 
   #if needed generate the direct effect results
-  if(direct){
-    #indirect protection
-    baseline_direct <- squire.page::generate_draws(remove_indirect(out), pars.list, draws)
-    # format the counter factual run
-    baseline_direct_deaths <- squire.page::nimue_format(baseline_direct, c("deaths", "infections"), date_0 = date_0,
-                                                        reduce_age = reduce_age) %>%
-      dplyr::distinct() %>%
-      tidyr::pivot_wider(names_from = .data$compartment, values_from = .data$y) %>%
-      na.omit() %>%
-      dplyr::mutate(counterfactual = "Baseline-Direct")
+  # if(direct){
+  #   #indirect protection
+  #   baseline_direct <- squire.page::generate_draws(remove_indirect(out), pars.list, draws)
+  #   # format the counter factual run
+  #   baseline_direct_deaths <- squire.page::nimue_format(baseline_direct, c("deaths", "infections"), date_0 = date_0,
+  #                                                       reduce_age = reduce_age) %>%
+  #     dplyr::distinct() %>%
+  #     tidyr::pivot_wider(names_from = .data$compartment, values_from = .data$y) %>%
+  #     na.omit() %>%
+  #     dplyr::mutate(counterfactual = "Baseline-Direct")
 
-    if(!reduce_age){
-      baseline_direct_deaths <- dplyr::mutate(baseline_direct_deaths, age_group = as.character(.data$age_group))
-    }
+  #   if(!reduce_age){
+  #     baseline_direct_deaths <- dplyr::mutate(baseline_direct_deaths, age_group = as.character(.data$age_group))
+  #   }
 
-    baseline_direct_deaths$t <- NULL
+  #   baseline_direct_deaths$t <- NULL
 
-    baseline_deaths <- rbind(
-      baseline_deaths,
-      baseline_direct_deaths
-    )
-    #healthcare
-    baseline_healthcare <- squire.page::generate_draws(remove_healthcare(out), pars.list, draws)
-    # format the counter factual run
-    baseline_healthcare_deaths <- squire.page::nimue_format(baseline_healthcare, c("deaths", "infections"), date_0 = date_0,
-                                                            reduce_age = reduce_age) %>%
-      dplyr::distinct() %>%
-      tidyr::pivot_wider(names_from = .data$compartment, values_from = .data$y) %>%
-      na.omit() %>%
-      dplyr::mutate(counterfactual = "Baseline-No Healthcare Surging")
+  #   baseline_deaths <- rbind(
+  #     baseline_deaths,
+  #     baseline_direct_deaths
+  #   )
+  #   #healthcare
+  #   baseline_healthcare <- squire.page::generate_draws(remove_healthcare(out), pars.list, draws)
+  #   # format the counter factual run
+  #   baseline_healthcare_deaths <- squire.page::nimue_format(baseline_healthcare, c("deaths", "infections"), date_0 = date_0,
+  #                                                           reduce_age = reduce_age) %>%
+  #     dplyr::distinct() %>%
+  #     tidyr::pivot_wider(names_from = .data$compartment, values_from = .data$y) %>%
+  #     na.omit() %>%
+  #     dplyr::mutate(counterfactual = "Baseline-No Healthcare Surging")
 
-    if(!reduce_age){
-      baseline_healthcare_deaths <- dplyr::mutate(baseline_healthcare_deaths, age_group = as.character(.data$age_group))
-    }
+  #   if(!reduce_age){
+  #     baseline_healthcare_deaths <- dplyr::mutate(baseline_healthcare_deaths, age_group = as.character(.data$age_group))
+  #   }
 
-    baseline_healthcare_deaths$t <- NULL
+  #   baseline_healthcare_deaths$t <- NULL
 
-    baseline_deaths <- rbind(
-      baseline_deaths,
-      baseline_healthcare_deaths
-    )
-    #healthcare+direct
-    baseline_healthcare_direct <- squire.page::generate_draws(remove_indirect(remove_healthcare(out)), pars.list, draws)
-    # format the counter factual run
-    baseline_healthcare_direct_deaths <- squire.page::nimue_format(baseline_healthcare_direct, c("deaths", "infections"), date_0 = date_0,
-                                                                   reduce_age = reduce_age) %>%
-      dplyr::distinct() %>%
-      tidyr::pivot_wider(names_from = .data$compartment, values_from = .data$y) %>%
-      na.omit() %>%
-      dplyr::mutate(counterfactual = "Baseline-Direct & No Healthcare Surging")
+  #   baseline_deaths <- rbind(
+  #     baseline_deaths,
+  #     baseline_healthcare_deaths
+  #   )
+  #   #healthcare+direct
+  #   baseline_healthcare_direct <- squire.page::generate_draws(remove_indirect(remove_healthcare(out)), pars.list, draws)
+  #   # format the counter factual run
+  #   baseline_healthcare_direct_deaths <- squire.page::nimue_format(baseline_healthcare_direct, c("deaths", "infections"), date_0 = date_0,
+  #                                                                  reduce_age = reduce_age) %>%
+  #     dplyr::distinct() %>%
+  #     tidyr::pivot_wider(names_from = .data$compartment, values_from = .data$y) %>%
+  #     na.omit() %>%
+  #     dplyr::mutate(counterfactual = "Baseline-Direct & No Healthcare Surging")
 
-    if(!reduce_age){
-      baseline_healthcare_direct_deaths <- dplyr::mutate(baseline_healthcare_direct_deaths, age_group = as.character(.data$age_group))
-    }
+  #   if(!reduce_age){
+  #     baseline_healthcare_direct_deaths <- dplyr::mutate(baseline_healthcare_direct_deaths, age_group = as.character(.data$age_group))
+  #   }
 
-    baseline_healthcare_direct_deaths$t <- NULL
+  #   baseline_healthcare_direct_deaths$t <- NULL
 
-    baseline_deaths <- rbind(
-      baseline_deaths,
-      baseline_healthcare_direct_deaths
-    )
-  }
+  #   baseline_deaths <- rbind(
+  #     baseline_deaths,
+  #     baseline_healthcare_direct_deaths
+  #   )
+  # }
 
   #set up data frame to hold results
   columns <- ncol(baseline_deaths)
@@ -256,12 +261,12 @@ deaths_averted <- function(out, draws, counterfactual, reduce_age = TRUE,
 
   deaths_df <- dplyr::arrange(deaths_df, counterfactual, replicate, date)
 
-
   # and add country info
   deaths_df$country <- country
   deaths_df$iso3c <- iso3c
   return(deaths_df)
 }
+
 remove_indirect <- function(out){
   #we update the efficacies in the interventions
   #just set ve_i's to 0, no need to scale disease as this is done later in ll func
@@ -352,171 +357,78 @@ dp_plot_2 <- function (res, excess) {
   }
 }
 
-
 #calculate the counterfactuals
-##to calculate COVAX vaccine assignments
-covaxIso3c <- get_covax_iso3c()
-#20% by end of 2021, assume start in 2021 Jan if current coverage less than 20%
-#get current coverages
-covax_data <- lapply(iso3cs, function(iso3c){
-  if(iso3c %in% covaxIso3c){
+
+shift_days <- function(days,n) {
+  dates <- seq(min(days)-n,max(days),1)
+  return(dates)
+}
+
+# TODO: actually source the extra data properly
+
+add_extra_data <- function(data,n) {
+  data <- append(data,rep(tail(data,1),n))
+}
+
+##Vaccine administration starts n days earlier
+early_n <- function(n) {
+  en <- lapply(iso3cs, function(iso3c){
     fit <- readRDS(paste0(fit_loc, "/", iso3c, ".Rds"))
-    eligible_pop <- sum(squire::population$n[squire::population$iso3c == iso3c][tail(fit$parameters$vaccine_coverage_mat, 1)!=0])
-    #check if vacciens are given at all
     if(any(fit$interventions$max_vaccine > 0)){
-      #check if over 20% full dose coverage (assuming all vaccines are given)
-      second_dosed <- sum(fit$interventions$max_vaccine)*tail(fit$interventions$dose_ratio, 1)
-      if(second_dosed/eligible_pop < 0.2){
-        #figure out if we need to scale up first doses or just second
-        first_doses <- fit$interventions$max_vaccine
-        dose_ratio <- fit$interventions$dose_ratio
-        if(sum(first_doses)/eligible_pop < 0.2){
-          #first doses too low scale up first_doses
-          first_doses <- first_doses/(sum(first_doses)/eligible_pop/0.2)
-          #second doses to 100%
-          dose_ratio_final <- 1
-        }else{
-          #calculate 2nd dose target
-          dose_ratio_final <- 0.2*eligible_pop/sum(first_doses)
-        }
-        #scale up dose ratio to meet target
-        dose_ratio <- dose_ratio/tail(dose_ratio, 1)*dose_ratio_final
-        #correct if increases above 1
-        dose_ratio <- if_else(dose_ratio > 1, as.double(1), dose_ratio)
         list(
-          date_vaccine_change = fit$interventions$date_vaccine_change,
-          date_vaccine_efficacy = fit$interventions$date_vaccine_change,
-          max_vaccine = first_doses,
-          dose_ratio = dose_ratio
+          date_vaccine_change = shift_days(fit$interventions$date_vaccine_change,n),
+          date_vaccine_efficacy = shift_days(fit$interventions$date_vaccine_efficacy,n),
+          max_vaccine = add_extra_data(fit$interventions$max_vaccine,n),
+          dose_ratio = add_extra_data(fit$interventions$dose_ratio,n)
         )
-      } else {
-        #doesn't need changing
+      }
+    else{
         NULL
       }
-    } else {
-      #if country doesn't have any vaccines yet, we assume they start mid 2021
-      start_date <- as.Date("2021-06-01")
-      dates <- seq(start_date, as.Date(Sys.Date()), 1)
-      #calculate dose ratio changes
-      first_dose_only_period <- 18
-      build_up <- 21
-      dose_ratio <- c(rep(0, first_dose_only_period),
-                      seq(0, 1, length.out = build_up + 1)[-1],
-                      rep(1, length(dates) + 1 - first_dose_only_period - build_up))
-      #caclulate first doses
-      v_r_b <- eligible_pop*0.2/(sum(1:build_up) + build_up*(length(dates)-build_up))
-      v_r_pb <- build_up*v_r_b
-      first_doses <- c(0, v_r_b*seq(1, build_up), rep(v_r_pb, length(dates)-build_up))
-      list(
-        date_vaccine_change = dates,
-        date_vaccine_efficacy = dates,
-        max_vaccine = first_doses,
-        dose_ratio = dose_ratio[-1]
-      )
-    }
-  } else{
-    NULL
-  }
-})
-names(covax_data) <- iso3cs
-#convert to list of lists format
+    })  
+  names(en) <- iso3cs
+  return(en)
+}
+ 
 
-#WHO goal counterfactual 40% total pop full dose
-who_data <- lapply(iso3cs, function(iso3c){
-  fit <- readRDS(paste0(fit_loc, "/", iso3c, ".Rds"))
-  eligible_pop <- sum(squire::population$n[squire::population$iso3c == iso3c])
-  #check if vacciens are given at all
-  if(any(fit$interventions$max_vaccine > 0)){
-    #check if over 40% full dose coverage (assuming all vaccines are given)
-    second_dosed <- sum(fit$interventions$max_vaccine)*tail(fit$interventions$dose_ratio, 1)
-    if(second_dosed/eligible_pop < 0.4){
-      #figure out if we need to scale up first doses or just second
-      first_doses <- fit$interventions$max_vaccine
-      dose_ratio <- fit$interventions$dose_ratio
-      if(sum(first_doses)/eligible_pop < 0.4){
-        #first doses too low scale up first_doses
-        first_doses <- first_doses/(sum(first_doses)/eligible_pop/0.4)
-        #second doses to 100%
-        dose_ratio_final <- 1
-      }else{
-        #calculate 2nd dose target
-        dose_ratio_final <- 0.4*eligible_pop/sum(first_doses)
-      }
-      #scale up dose ratio to meet target
-      dose_ratio <- dose_ratio/tail(dose_ratio, 1)*dose_ratio_final
-      #correct if increases above 1
-      dose_ratio <- if_else(dose_ratio > 1, as.double(1), dose_ratio)
-      list(
-        date_vaccine_change = fit$interventions$date_vaccine_change,
-        date_vaccine_efficacy = fit$interventions$date_vaccine_change,
-        max_vaccine = first_doses,
-        dose_ratio = dose_ratio
-      )
-      print(length(date_vaccine_change),length(date_vaccine_efficacy),length(max_vaccine),length(dose_ratio))
-    } else {
-      #doesn't need changing
-      NULL
-    }
-  } else {
-    #if country doesn't have any vaccines yet, we assume they start mid 2021
-    start_date <- as.Date("2021-06-01")
-    dates <- seq(start_date, as.Date(Sys.Date()), 1)
-    #calculate dose ratio changes
-    first_dose_only_period <- 18
-    build_up <- 21
-    dose_ratio <- c(rep(0, first_dose_only_period),
-                    seq(0, 1, length.out = build_up + 1)[-1],
-                    rep(1, length(dates) + 1 - first_dose_only_period - build_up))
-    #caclulate first doses
-    v_r_b <- eligible_pop*0.4/(sum(1:build_up) + build_up*(length(dates)-build_up))
-    v_r_pb <- build_up*v_r_b
-    first_doses <- c(0, v_r_b*seq(1, build_up), rep(v_r_pb, length(dates)-build_up))
-    list(
-      date_vaccine_change = dates,
-      date_vaccine_efficacy = dates,
-      max_vaccine = first_doses,
-      dose_ratio = dose_ratio[-1]
-    )
-    print(length(date_vaccine_change),length(date_vaccine_efficacy),length(max_vaccine),length(dose_ratio))
-  }
-})
-names(who_data) <- iso3cs
-
+early_64 <- early_n(64)
+early_32 <- early_n(32)
+early_16 <- early_n(16)
+early_8 <- early_n(8)
+early_4 <- early_n(4)
+early_2 <- early_n(2)
+early_1 <- early_n(1)
 
 if(excess_mortality){
   counterfactuals <- lapply(iso3cs, function(iso3c){
     list(
-      # `No Vaccines` = list(max_vaccine = c(0,0),
-      #                      date_vaccine_change = as.Date(Sys.Date()) - 1,
-      #                      dose_ratio = 0,
-      #                      date_vaccine_efficacy = as.Date(Sys.Date()) - 1)
-      # `No Vaccines-No Healthcare Surging` = list(max_vaccine = c(0,0),
-      #                                            date_vaccine_change = as.Date(Sys.Date()) - 1,
-      #                                            date_vaccine_efficacy = as.Date(Sys.Date()) - 1,
-      #                                            dose_ratio = 0,
-      #                                            no_healthcare = TRUE),
-
-      # `COVAX` = covax_data[[iso3c]],
-      `WHO` = who_data[[iso3c]]
+      `64-days-earlier` = early_64[[iso3c]],
+      `32-days-earlier` = early_32[[iso3c]],
+      `16-days-earlier` = early_16[[iso3c]],
+      `8-days-earlier` = early_8[[iso3c]],
+      `4-days-earlier` = early_4[[iso3c]],
+      `2-days-earlier` = early_2[[iso3c]],
+      `1-day-earlier` = early_1[[iso3c]]
     )
   })
 } else {
   counterfactuals <- lapply(iso3cs, function(iso3c){
     list(
-      # `No Vaccines` = list(max_vaccine = c(0,0),
-      #                      dose_ratio = 0,
-      #                      date_vaccine_change = as.Date(Sys.Date()) - 1,
-      #                      date_vaccine_efficacy = as.Date(Sys.Date()) - 1
-      `WHO` = who_data[[iso3c]]
-      )
+      `64-days-earlier` = early_64[[iso3c]],
+      `32-days-earlier` = early_32[[iso3c]],
+      `16-days-earlier` = early_16[[iso3c]],
+      `8-days-earlier` = early_8[[iso3c]],
+      `4-days-earlier` = early_4[[iso3c]],
+      `2-days-earlier` = early_2[[iso3c]],
+      `1-day-earlier` = early_1[[iso3c]]
+    )
   })
 }
 names(counterfactuals) <- iso3cs
 #remove uneeded
-rm(covax_data)
-rm(who_data)
 
-names(iso3cs) <- iso3cs
+
+
 #simplify submission (hold over from using cluster)
 submission_lists <- map(
   iso3cs,
@@ -526,24 +438,28 @@ submission_lists <- map(
     excess = excess_mortality
   )
 )
+
 #to hold individual plots
 dir.create(temp_plots)
+dir.create(output)
+
+
 
 #this will take a long time, originally run on a cluster, too memory intensive to be run in parrallel
 walk(submission_lists, function(sub_list){
   out <- readRDS(paste0(fit_loc, "/", as.character(sub_list$iso3c), ".Rds"))
 
-  df <- suppressMessages(
-    deaths_averted(out, draws = NULL,
+  df <- deaths_averted(out, draws = NULL,
                    counterfactual = sub_list$counterfactual,
                    reduce_age = TRUE,
                    direct = sub_list$excess,
                    plot_name = paste0(temp_plots, "/", sub_list$iso3c, ".pdf"),
                    excess = sub_list$excess)
-  )
+
   #save each counterfactual seperately files
   split(df, df$counterfactual) %>%
     purrr::walk(function(x){
+      print(paste0(output, "/", unique(x$counterfactual), "_", sub_list$iso3c, ".Rds"))
       saveRDS(x %>%
                 dplyr::select(!counterfactual), paste0(output, "/", unique(x$counterfactual), "_", sub_list$iso3c, ".Rds"))
     })

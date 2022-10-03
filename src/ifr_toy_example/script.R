@@ -341,7 +341,7 @@ results_df <- map(seq_along(variable_parameters), function(x){
       pars_list <- squire.page::generate_parameters(model_fit, draws = 50)
       #get baseline deaths
       baseline_deaths <- squire.page::nimue_format(
-        squire.page::generate_draws(model_fit, pars_list),
+        squire.page::generate_draws(model_fit, pars_list, draws = 10),
         var_select = "deaths"
       )
       #reff
@@ -353,7 +353,7 @@ results_df <- map(seq_along(variable_parameters), function(x){
       model_fit$pmcmc_results$inputs$interventions$max_vaccine <- c(0, 0)
       model_fit$pmcmc_results$inputs$model_params$max_vaccine <- c(0, 0)
       counterfactual_deaths <- squire.page::nimue_format(
-        squire.page::generate_draws(model_fit, pars_list),
+        squire.page::generate_draws(model_fit, pars_list, draws = 10),
         var_select = "deaths"
       )
       #merge and calculate total deaths averted
