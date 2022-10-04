@@ -36,7 +36,7 @@ print(iso3cs)
 #' @param direct Should there be an estimate of direct effect of the vaccine, i.e.
 #' no protection against infection. Default = FALSE.
 #' @param plot_name Name for fitting plot of country, if NULL no plot is made.
-deaths_averted <- function(out, draws, counterfactual, reduce_age = TRUE,
+deaths_averted <- function(out, draws, counterfactual, iso3c, reduce_age = TRUE,
                            direct = FALSE, plot_name = NULL, excess = TRUE) {
   #error if Baseline in counterfactual
   if(any(c("Baseline","baseline","BASELINE") %in% names(counterfactual))){
@@ -51,7 +51,7 @@ deaths_averted <- function(out, draws, counterfactual, reduce_age = TRUE,
   # get the real data
   data <- out$pmcmc_results$inputs$data
   country <- out$parameters$country
-  iso3c <- squire::population$iso3c[squire::population$country == country][1]
+  # iso3c <- squire::population$iso3c[squire::population$country == country][1]
   if(is.null(suppressWarnings(data$week_end))){
     date_0 <- max(data$date)
   } else {
@@ -455,6 +455,7 @@ walk(submission_lists, function(sub_list){
 
   df <- deaths_averted(out, draws = NULL,
                    counterfactual = sub_list$counterfactual,
+                   iso3c = iso3c,
                    reduce_age = TRUE,
                    direct = sub_list$excess,
                    plot_name = paste0(temp_plots, "/", sub_list$iso3c, ".pdf"),

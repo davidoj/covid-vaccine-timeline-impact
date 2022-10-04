@@ -1,4 +1,15 @@
 
+# Snippets to integrate
+
+ggplot(cf_data_de,aes(x=reorder(counterfactual,days),y=averted_deaths_avg,fill=efficacy_length))
+  +geom_bar(stat="identity",position=position_dodge()) 
+  + theme(axis.text.x = element_text(angle=90,vjust=0.5,hjust=1))
+
+
+cf_data_de = cf_data[cf_data$counterfactual!='No Vaccines',]
+
+cf_data_de$efficacy_length <- map(cf_data_de$iso3c,~(if(.x=="USA"){return("446 days")}else{return("1000 days")})
+
 if(!is.na(seed)){
   set.seed(seed)
 }
