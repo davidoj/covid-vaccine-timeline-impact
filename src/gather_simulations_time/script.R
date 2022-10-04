@@ -1,6 +1,8 @@
 if(excess){
   orderly_loc <- file.path(orderly_loc, "data", "excess_mortality")
-  empty_files <- NULL
+  empty_files <- c("Baseline-Direct & No Healthcare Surging", "Baseline-Direct",
+                   "Baseline-No Healthcare Surging", "COVAX", "No Vaccines-No Healthcare Surging",
+                   "WHO")
 } else {
   orderly_loc <- file.path(orderly_loc, "data", "reported_deaths")
   empty_files <- c("Baseline-Direct & No Healthcare Surging", "Baseline-Direct",

@@ -4,7 +4,7 @@ if(!is.na(seed)){
 }
 
 if(excess){
-  cf <- c("No Vaccines","1-days-earlier", "2-days-earlier",  "4-days-earlier",  "8-days-earlier",
+  cf <- c("No Vaccines","1-day-earlier", "2-days-earlier",  "4-days-earlier",  "8-days-earlier",
                   "16-days-earlier", "32-days-earlier", "64-days-earlier")
 } else {
   cf <- "No Vaccines"
@@ -221,28 +221,28 @@ table1 <- table1_df_overall %>%
          `Deaths Averted by Vaccinations\nPer 10k Vaccines` = writeText(.data, "No Vaccines_per_vacc"),
          #calculate coverage of 1+dose
          `Vaccination Coverage` = format_coverage(`No Vaccinesvaccinated`/`No Vaccinespopulation`))
-if(excess){
+if(excess){ NULL
   #extra terms for covax and who
-  table1 <-
-    table1 %>%
-    mutate(
-      `Additional Deaths Averted if COVAX Targets met` = writeText(.data, "COVAX", whole = TRUE),
-      `Increase in Vaccination Coverage\nif COVAX targets met` = format_coverage((`COVAXvaccinated`/`COVAXpopulation`)/
-                                                                                   (`No Vaccinesvaccinated`/`No Vaccinespopulation`) -
-                                                                                   1),
-      COVAX_percentage_avg = COVAX_avg/`No Vaccines_avg`*100,
-      COVAX_percentage_025 = COVAX_025/`No Vaccines_avg`*100,
-      COVAX_percentage_975 = COVAX_975/`No Vaccines_avg`*100,
-      `Additional Deaths Averted if COVAX Targets met (%)` = writeText(.data, "COVAX_percentage", percentage = TRUE),
-      `Additional Deaths Averted if WHO Targets met` = writeText(.data, "WHO", whole = TRUE),
-      `Increase in Vaccination Coverage\nif WHO targets met` = format_coverage((`WHOvaccinated`/`WHOpopulation`)/
-                                                                                 (`No Vaccinesvaccinated`/`No Vaccinespopulation`) -
-                                                                                 1),
-      WHO_percentage_avg = WHO_avg/`No Vaccines_avg`*100,
-      WHO_percentage_025 = WHO_025/`No Vaccines_avg`*100,
-      WHO_percentage_975 = WHO_975/`No Vaccines_avg`*100,
-      `Additional Deaths Averted if WHO Targets met (%)` = writeText(.data, "WHO_percentage", percentage = TRUE)
-    )
+  # table1 <-
+  #   table1 %>%
+  #   mutate(
+  #     `Additional Deaths Averted if COVAX Targets met` = writeText(.data, "COVAX", whole = TRUE),
+  #     `Increase in Vaccination Coverage\nif COVAX targets met` = format_coverage((`COVAXvaccinated`/`COVAXpopulation`)/
+  #                                                                                  (`No Vaccinesvaccinated`/`No Vaccinespopulation`) -
+  #                                                                                  1),
+  #     COVAX_percentage_avg = COVAX_avg/`No Vaccines_avg`*100,
+  #     COVAX_percentage_025 = COVAX_025/`No Vaccines_avg`*100,
+  #     COVAX_percentage_975 = COVAX_975/`No Vaccines_avg`*100,
+  #     `Additional Deaths Averted if COVAX Targets met (%)` = writeText(.data, "COVAX_percentage", percentage = TRUE),
+  #     `Additional Deaths Averted if WHO Targets met` = writeText(.data, "WHO", whole = TRUE),
+  #     `Increase in Vaccination Coverage\nif WHO targets met` = format_coverage((`WHOvaccinated`/`WHOpopulation`)/
+  #                                                                                (`No Vaccinesvaccinated`/`No Vaccinespopulation`) -
+  #                                                                                1),
+  #     WHO_percentage_avg = WHO_avg/`No Vaccines_avg`*100,
+  #     WHO_percentage_025 = WHO_025/`No Vaccines_avg`*100,
+  #     WHO_percentage_975 = WHO_975/`No Vaccines_avg`*100,
+  #     `Additional Deaths Averted if WHO Targets met (%)` = writeText(.data, "WHO_percentage", percentage = TRUE)
+  #   )
 
   #create first output
   output_table <- list(
@@ -251,24 +251,24 @@ if(excess){
     select(` `,`Total Deaths,\nwith vaccinations`,
            `Vaccination Coverage`, `Deaths Averted by Vaccinations`,
            `Deaths Averted by Vaccinations\nPer 10k People`,
-           `Deaths Averted by Vaccinations\nPer 10k Vaccines`),
-    table2 = table1 %>%
-      filter(!str_trim(` `) %in% c(table1_df_ind$iso3c, "by Country/Admin Region:")) %>%
-      select(` `,
-             `Increase in Vaccination Coverage\nif COVAX targets met`,
-             `Additional Deaths Averted if COVAX Targets met`,
-             `Additional Deaths Averted if COVAX Targets met (%)`,
-             `Increase in Vaccination Coverage\nif WHO targets met`,
-             `Additional Deaths Averted if WHO Targets met`,
-             `Additional Deaths Averted if WHO Targets met (%)`) %>%
-      #correct the coverage increase in HICs for COVAX
-      mutate(
-        `Increase in Vaccination Coverage\nif COVAX targets met` = if_else(
-          ` ` == "   HIC" & `Increase in Vaccination Coverage\nif COVAX targets met` == "",
-          "0%",
-          `Increase in Vaccination Coverage\nif COVAX targets met`
-        )
-      )
+           `Deaths Averted by Vaccinations\nPer 10k Vaccines`)
+    # table2 = table1 %>%
+    #   filter(!str_trim(` `) %in% c(table1_df_ind$iso3c, "by Country/Admin Region:")) %>%
+    #   select(` `,
+    #          `Increase in Vaccination Coverage\nif COVAX targets met`,
+    #          `Additional Deaths Averted if COVAX Targets met`,
+    #          `Additional Deaths Averted if COVAX Targets met (%)`,
+    #          `Increase in Vaccination Coverage\nif WHO targets met`,
+    #          `Additional Deaths Averted if WHO Targets met`,
+    #          `Additional Deaths Averted if WHO Targets met (%)`) %>%
+    #   #correct the coverage increase in HICs for COVAX
+    #   mutate(
+    #     `Increase in Vaccination Coverage\nif COVAX targets met` = if_else(
+    #       ` ` == "   HIC" & `Increase in Vaccination Coverage\nif COVAX targets met` == "",
+    #       "0%",
+    #       `Increase in Vaccination Coverage\nif COVAX targets met`
+    #     )
+    #   )
   )
 } else {
   output_table <- table1 %>%
@@ -295,47 +295,53 @@ if(excess){
     select(` `,`Total Deaths,\nwith vaccinations`,
            `Vaccination Coverage`, `Deaths Averted by Vaccinations`,
            `Deaths Averted by Vaccinations\nPer 10k People`,
-           `Deaths Averted by Vaccinations\nPer 10k Vaccines`,
-           `Increase in Vaccination Coverage\nif COVAX targets met`,
-           `Additional Deaths Averted if COVAX Targets met`,
-           `Additional Deaths Averted if COVAX Targets met (%)`,
-           `Increase in Vaccination Coverage\nif WHO targets met`,
-           `Additional Deaths Averted if WHO Targets met`,
-           `Additional Deaths Averted if WHO Targets met (%)`) %>%
-    mutate(`Notes:` = if_else(
-      str_trim(` `) %in% get_covax_iso3c() &
-        `Additional Deaths Averted if COVAX Targets met` == "",
-      "COVAX AMC country met target so no increase in vaccination modelled",
-      ""
-    ),
-    `Notes:` = case_when(
-      str_trim(` `) %in% c("IRQ", "SDN") ~
-        paste0(`Notes:`, " Fit unable to recreate estimated deaths. Modelled deaths are lower than predicted excess mortality."),
-      TRUE ~ `Notes:`
-    ))
+           `Deaths Averted by Vaccinations\nPer 10k Vaccines`
+           # ,
+           # `Increase in Vaccination Coverage\nif COVAX targets met`,
+           # `Additional Deaths Averted if COVAX Targets met`,
+           # `Additional Deaths Averted if COVAX Targets met (%)`,
+           # `Increase in Vaccination Coverage\nif WHO targets met`,
+           # `Additional Deaths Averted if WHO Targets met`,
+           # `Additional Deaths Averted if WHO Targets met (%)`
+           ) 
+    # %>%
+    # mutate(
+    # #   `Notes:` = if_else(
+    # #   str_trim(` `) %in% get_covax_iso3c() &
+    # #     `Additional Deaths Averted if COVAX Targets met` == "",
+    # #   "COVAX AMC country met target so no increase in vaccination modelled",
+    # #   ""
+    # # ),
+    # `Notes:` = case_when(
+    #   str_trim(` `) %in% c("IRQ", "SDN") ~
+    #     paste0(`Notes:`, " Fit unable to recreate estimated deaths. Modelled deaths are lower than predicted excess mortality."),
+    #   TRUE ~ `Notes:`
+    # )
 } else {
   df <-
     table1 %>%
     select(` `,`Total Deaths,\nwith vaccinations`,
            `Vaccination Coverage`, `Deaths Averted by Vaccinations`,
            `Deaths Averted by Vaccinations\nPer 10k People`,
-           `Deaths Averted by Vaccinations\nPer 10k Vaccines`) %>%
-    mutate(`Notes:` = "")
+           `Deaths Averted by Vaccinations\nPer 10k Vaccines`)
+    # %>%
+    # mutate(`Notes:` = "")
 }
 df <- df %>%
-  ungroup() %>%
-  mutate(
-    `Notes:` = if_else(str_trim(` `) %in% c("PRK", "ERI"),
-                       paste0(`Notes:`, " No vaccinations given in country over period modelled."),
-                       `Notes:`),
-  ` ` = if_else(
-    str_trim(` `) %in% table1_df_ind$iso3c,
-    paste0("   ", countrycode(str_trim(` `), origin = "iso3c", destination = "country.name")),
-    ` `
-  ),
-  `Notes:` = if_else(map_lgl(str_split(df$`Deaths Averted by Vaccinations`, "[ \\(-]"), ~"0" %in% .x),
-    paste0(`Notes:`, " Deaths averted by Vaccinations rounded to nearest individual yielding 0 deaths averted. Deaths averted per 10K people and 10K vaccines has not been rounded."),
-    `Notes:`)
-  )
+  ungroup() 
+  # %>%
+  # mutate(
+  #   `Notes:` = if_else(str_trim(` `) %in% c("PRK", "ERI"),
+  #                      paste0(`Notes:`, " No vaccinations given in country over period modelled."),
+  #                      `Notes:`),
+  # ` ` = if_else(
+  #   str_trim(` `) %in% table1_df_ind$iso3c,
+  #   paste0("   ", countrycode(str_trim(` `), origin = "iso3c", destination = "country.name")),
+  #   ` `
+  # ),
+  # `Notes:` = if_else(map_lgl(str_split(df$`Deaths Averted by Vaccinations`, "[ \\(-]"), ~"0" %in% .x),
+  #   paste0(`Notes:`, " Deaths averted by Vaccinations rounded to nearest individual yielding 0 deaths averted. Deaths averted per 10K people and 10K vaccines has not been rounded."),
+  #   `Notes:`)
+  # )
 
 readr::write_csv(df, "summary_table.csv")
